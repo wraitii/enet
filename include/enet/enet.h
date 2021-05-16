@@ -12,6 +12,11 @@ extern "C"
 
 #include <stdlib.h>
 
+/** For convenience, if this is predefined, the auto-generated ipv6.h may be missing.  */
+#ifndef ENET_HAS_IPV6_SUPPORT
+#include "enet/ipv6.h"
+#endif
+
 #ifdef _WIN32
 #include "enet/win32.h"
 #else
@@ -72,8 +77,20 @@ typedef enum _ENetSocketShutdown
     ENET_SOCKET_SHUTDOWN_READ_WRITE = 2
 } ENetSocketShutdown;
 
+
+#if ENET_HAS_IPV6_SUPPORT
+typedef struct _ENetAddressHost
+{
+  enet_uint8 data[16];
+} ENetAddressHost;
+
+#define ENET_HOST_ANY_INIT  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+extern ENetAddressHost ENET_HOST_ANY;
+#else
 #define ENET_HOST_ANY       0
 #define ENET_HOST_BROADCAST 0xFFFFFFFFU
+#endif
+
 #define ENET_PORT_ANY       0
 
 /**
@@ -81,16 +98,23 @@ typedef enum _ENetSocketShutdown
  *
  * The host must be specified in network byte-order, and the port must be in host 
  * byte-order. The constant ENET_HOST_ANY may be used to specify the default 
- * server host. The constant ENET_HOST_BROADCAST may be used to specify the
+ * server host.
+ * In IPV4 mode, The constant ENET_HOST_BROADCAST may be used to specify the
  * broadcast address (255.255.255.255).  This makes sense for enet_host_connect,
  * but not for enet_host_create.  Once a server responds to a broadcast, the
  * address is updated from ENET_HOST_BROADCAST to the server's actual IP address.
  */
 typedef struct _ENetAddress
 {
+#if ENET_HAS_IPV6_SUPPORT
+   ENetAddressHost host;
+#else
    enet_uint32 host;
+#endif
    enet_uint16 port;
 } ENetAddress;
+
+#include "enet/address.h"
 
 /**
  * Packet flag bit constants.
@@ -554,6 +578,16 @@ ENET_API int enet_address_get_host_ip (const ENetAddress * address, char * hostN
     @retval < 0 on failure
 */
 ENET_API int enet_address_get_host (const ENetAddress * address, char * hostName, size_t nameLength);
+
+/** Compares the host fields of two addresses.
+    @param a  first address whose host to compare
+    @param b  second address whose host to compare
+    @returns whether the two hosts are the same (bitwise)
+    @retval 0 if they are the same
+    @retval < 0 if the first host has a lower value
+    @retval > 0 if the first host has a larger value
+*/
+ENET_API int enet_address_compare_host (const ENetAddress * a, const ENetAddress * b);
 
 /** @} */
 
