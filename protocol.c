@@ -309,7 +309,7 @@ enet_protocol_handle_connect (ENetHost * host, ENetProtocolHeader * header, ENet
         }
         else 
         if (currentPeer -> state != ENET_PEER_STATE_CONNECTING &&
-            currentPeer -> address.host == host -> receivedAddress.host)
+            !enet_address_compare_host(& currentPeer -> address, & host -> receivedAddress))
         {
             if (currentPeer -> address.port == host -> receivedAddress.port &&
                 currentPeer -> connectID == command -> connect.connectID)
@@ -1031,9 +1031,13 @@ enet_protocol_handle_incoming_commands (ENetHost * host, ENetEvent * event)
 
        if (peer -> state == ENET_PEER_STATE_DISCONNECTED ||
            peer -> state == ENET_PEER_STATE_ZOMBIE ||
-           ((host -> receivedAddress.host != peer -> address.host ||
+           ((enet_address_compare_host(& host -> receivedAddress, & peer -> address) ||
+#if ENET_HAS_IPV6_SUPPORT
+             host -> receivedAddress.port != peer -> address.port)) ||
+#else
              host -> receivedAddress.port != peer -> address.port) &&
              peer -> address.host != ENET_HOST_BROADCAST) ||
+#endif
            (peer -> outgoingPeerID < ENET_PROTOCOL_MAXIMUM_PEER_ID &&
             sessionID != peer -> incomingSessionID))
          return 0;

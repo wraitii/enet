@@ -17,9 +17,8 @@
 #endif
 
 #include <stdlib.h>
-#include <winsock2.h>
 
-typedef SOCKET ENetSocket;
+typedef unsigned long ENetSocket;
 
 #define ENET_SOCKET_NULL INVALID_SOCKET
 
@@ -47,7 +46,7 @@ typedef struct
 #define ENET_API extern
 #endif /* ENET_DLL */
 
-typedef fd_set ENetSocketSet;
+typedef struct fd_set ENetSocketSet;
 
 #define ENET_SOCKETSET_EMPTY(sockset)          FD_ZERO (& (sockset))
 #define ENET_SOCKETSET_ADD(sockset, socket)    FD_SET (socket, & (sockset))
